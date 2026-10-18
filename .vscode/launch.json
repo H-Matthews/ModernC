@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug cat",
+            "type": "cppdbg",
+            "request": "launch",
+            // This automatically points to your active CMake target executable:
+            "program": "${command:cmake.launchTargetPath}",
+            // Put your command-line arguments (filenames) in this array:
+            "args": ["chapters/ch01/hello.c"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb", // Change to "lldb" if you are on macOS
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}
