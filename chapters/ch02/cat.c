@@ -6,12 +6,12 @@
 enum { MAX_BUFFER_SIZE = 4096 };
 
 /**
- * @brief Streams the files contents to stdout
+ * @brief Streams bytes from a file descriptor to stdout
  * 
  * This function takes a file descriptor, reads it into a intermediary byte buffer,
  * then streams the bytes to stdout. Uses read, write POSIX calls
  * 
- * @param[in] fptr The file to be streamed
+ * @param[in] fd - File Descriptor to stream bytes from
  */
 void streamBytes(int fd);
 
