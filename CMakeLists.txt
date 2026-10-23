@@ -23,4 +23,4 @@ elseif(MSVC)
     )
 endif()
 
-add_subdirectory(chapters)
+add_subdirectory(programs)

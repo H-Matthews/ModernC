@@ -2,13 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug cat",
+            "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
             // This automatically points to your active CMake target executable:
             "program": "${command:cmake.launchTargetPath}",
             // Put your command-line arguments (filenames) in this array:
-            "args": ["chapters/ch01/hello.c"],
+            "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
