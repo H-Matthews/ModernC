@@ -177,17 +177,17 @@ void logFileError(const char* fileName, const char* progName) {
 
 void printStatistics(const char* fileName, const FileStats* fileStats) {
     if(fileName != NULL) {
-        printf(" %d %d %d %s\n",
+        printf(" %u %u %u %s\n",
             fileStats->lineCount, fileStats->wordCount, fileStats->byteCount, fileName);
     }
     else {
-        printf(" %d %d %d\n",
+        printf(" %u %u %u\n",
             fileStats->lineCount, fileStats->wordCount, fileStats->byteCount);
     }
 }
 
 void printTotals(const FileStats* totalStats) {
-    printf(" %d %d %d Totals\n",
+    printf(" %u %u %u Totals\n",
         totalStats->lineCount, totalStats->wordCount, totalStats->byteCount);
 }
 
