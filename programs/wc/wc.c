@@ -14,15 +14,12 @@ enum { MAX_BUFFER_SIZE = 4096 };
 #define FORM_FEED 0x0C
 #define CARRIAGE_RETURN 0x0D
 
-int32_t byteCount = 0;
-int32_t lineCount = 0;
-int32_t wordCount = 0;
-int32_t charCount = 0;
-
-int32_t tByteCount = 0;
-int32_t tLineCount = 0;
-int32_t tWordCount = 0;
-int32_t tCharCount = 0;
+typedef struct FileStats{
+    uint32_t byteCount;
+    uint32_t lineCount;
+    uint32_t wordCount;
+    uint32_t charCount;
+} FileStats;
 
 /**
  * @brief Streams bytes from a file descriptor to stdout
@@ -31,8 +28,9 @@ int32_t tCharCount = 0;
  * then processes the bytes one at a time
  * 
  * @param[in] fd - File Descriptor to stream bytes from
+ * @param[in] fileStats - Structure that maintains file statistics
  */
-void processBytes(int fd);
+void processBytes(int fd, FileStats* fileStats);
 
 /**
  * @brief Logs a error when a file descriptor cannot be obtained
@@ -47,17 +45,17 @@ void logFileError(const char* fileName, const char* progName);
  * 
  * @param[in] fileName - Name of the file that we are printing statistics for
  */
-void printStatistics(const char* fileName);
+void printStatistics(const char* fileName, const FileStats* fileStats);
 
 /**
  * @brief Prints total count information to stdout
  */
-void printTotals();
+void printTotals(const FileStats* totalStats);
 
 /**
  * @brief Resets counters back to zero
  */
-void resetCounters();
+void resetCounters(FileStats* fileStats);
 
 /**
  * @brief Determines whether or not the byte is an ASCII character
@@ -88,8 +86,11 @@ bool isWhiteSpace(uint8_t byte) {
 int main(int argc, char* argv[]) {
     const char* progName = argv[0];
 
+    FileStats stats = {0, 0, 0, 0};
+    FileStats totalStats = {0, 0, 0, 0};
+
     if(argc > 1) {
-        int16_t filesProcessed = 0;
+        uint16_t filesProcessed = 0;
 
         for(int i = 1; i < argc; i++) {
             const char* fileName = argv[i];
@@ -100,12 +101,19 @@ int main(int argc, char* argv[]) {
                 continue;
             }
 
-            processBytes(fd);
-            printStatistics(fileName);
+            processBytes(fd, &stats);
+
+            // Update file totals
+            totalStats.byteCount += stats.byteCount;
+            totalStats.charCount += stats.charCount;
+            totalStats.wordCount += stats.wordCount;
+            totalStats.lineCount += stats.lineCount;
+
+            printStatistics(fileName, &stats);
 
             // Each file needs its own totals...
-            // So, reset after each file is completed. The totals are maintained.
-            resetCounters();
+            // So, reset stats after each file is read. The totals are maintained.
+            resetCounters(&stats);
 
             filesProcessed++;
 
@@ -113,35 +121,35 @@ int main(int argc, char* argv[]) {
         }
 
         if(filesProcessed > 1) {
-            printTotals();
+            printTotals(&totalStats);
         }
 
     }
     else {
-        processBytes(STDIN_FILENO);
-        printStatistics(NULL);
+        processBytes(STDIN_FILENO, &stats);
+        printStatistics(NULL, &stats);
     }
 }
 
-void processBytes(int fd) {
+void processBytes(int fd, FileStats* fileStats) {
     uint8_t buffer[MAX_BUFFER_SIZE];
     ssize_t bytesRead = 0;
     bool inWord = false;
 
     while((bytesRead = read(fd, buffer, MAX_BUFFER_SIZE)) > 0) {
-        byteCount += bytesRead;
+        fileStats->byteCount += bytesRead;
 
         for(int i = 0; i < bytesRead; i++) {
             uint8_t byte = buffer[i];
 
             // Determine line count
             if(byte == NEWLINE) {
-                lineCount++;
+                fileStats->lineCount++;
             }
 
             // Determine ASCII char count
             if(isAsciiChar(byte)) {
-                charCount++;
+                fileStats->charCount++;
             }
 
             // Determine WORD count
@@ -150,16 +158,10 @@ void processBytes(int fd) {
             }
             else if(inWord == false) {
                 inWord = true;
-                wordCount++;
+                fileStats->wordCount++;
             }
         }
     }
-
-    // Maintain totals
-    tByteCount += byteCount;
-    tLineCount += lineCount;
-    tWordCount += wordCount;
-    tCharCount += charCount;
 
     if(bytesRead < 0) {
         perror("Read Error");
@@ -173,22 +175,25 @@ void logFileError(const char* fileName, const char* progName) {
     perror(errorMsg);
 }
 
-void printStatistics(const char* fileName) {
+void printStatistics(const char* fileName, const FileStats* fileStats) {
     if(fileName != NULL) {
-        printf("  %d  %d  %d  %s\n", lineCount, wordCount, byteCount, fileName);
+        printf(" %d %d %d %s\n",
+            fileStats->lineCount, fileStats->wordCount, fileStats->byteCount, fileName);
     }
     else {
-        printf("  %d  %d  %d\n", lineCount, wordCount, byteCount);
+        printf(" %d %d %d\n",
+            fileStats->lineCount, fileStats->wordCount, fileStats->byteCount);
     }
 }
 
-void printTotals() {
-    printf("  %d  %d  %d  Totals\n", tLineCount, tWordCount, tByteCount);
+void printTotals(const FileStats* totalStats) {
+    printf(" %d %d %d Totals\n",
+        totalStats->lineCount, totalStats->wordCount, totalStats->byteCount);
 }
 
-void resetCounters() {
-    byteCount = 0;
-    lineCount = 0;
-    wordCount = 0;
-    charCount = 0;
+void resetCounters(FileStats* fileStats) {
+    fileStats->byteCount = 0;
+    fileStats->lineCount = 0;
+    fileStats->wordCount = 0;
+    fileStats->charCount = 0;
 }
